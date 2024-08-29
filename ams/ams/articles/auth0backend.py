@@ -1,41 +1,15 @@
 import json
+import requests
 from jose import jwt
-from urllib.request import urlopen
 from django.conf import settings
-from rest_framework import authentication, exceptions
+from django.contrib.auth.models import User
+from rest_framework_jwt.authentication import BaseJSONWebTokenAuthentication
 
-class Auth0JSONWebTokenAuthentication(authentication.BaseAuthentication):
-    def authenticate(self, request):
-        auth = request.headers.get('Authorization', None)
-        if not auth:
-            return None
-
-        parts = auth.split()
-
-        if parts[0].lower() != 'bearer':
-            raise exceptions.AuthenticationFailed('Authorization header must start with Bearer')
-        elif len(parts) == 1:
-            raise exceptions.AuthenticationFailed('Token not found')
-        elif len(parts) > 2:
-            raise exceptions.AuthenticationFailed('Authorization header must be Bearer token')
-
-        token = parts[1]
-        try:
-            payload = self.decode_jwt(token)
-        except jwt.ExpiredSignatureError:
-            raise exceptions.AuthenticationFailed('token is expired')
-        except jwt.JWTClaimsError:
-            raise exceptions.AuthenticationFailed('incorrect claims, please check the audience and issuer')
-        except Exception:
-            raise exceptions.AuthenticationFailed('Unable to parse authentication token.')
-
-        return (payload, token)
-
-    def decode_jwt(self, token):
+class Auth0JSONWebTokenAuthentication(BaseJSONWebTokenAuthentication):
+    def decode_handler(self, token):
         header = jwt.get_unverified_header(token)
         rsa_key = {}
-        jsonurl = urlopen(f"https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json")
-        jwks = json.loads(jsonurl.read())
+        jwks = requests.get(f'https://{settings.AUTH0_DOMAIN}/.well-known/jwks.json').json()
         for key in jwks['keys']:
             if key['kid'] == header['kid']:
                 rsa_key = {
@@ -45,13 +19,35 @@ class Auth0JSONWebTokenAuthentication(authentication.BaseAuthentication):
                     'n': key['n'],
                     'e': key['e']
                 }
-        if rsa_key:
-            return jwt.decode(
-                token,
-                rsa_key,
-                algorithms=['RS256'],
-                audience=settings.AUTH0_CLIENT_ID,
-                issuer=f"https://{settings.AUTH0_DOMAIN}/"
-            )
-        raise exceptions.AuthenticationFailed('Unable to find appropriate key')
+        return jwt.decode(
+            token,
+            rsa_key,
+            algorithms=['RS256'],
+            audience=settings.AUTH0_CLIENT_ID,
+            issuer=f'https://{settings.AUTH0_DOMAIN}/'
+        )
 
+    def authenticate(self, request):
+        auth = request.headers.get('Authorization', None)
+        if auth:
+            parts = auth.split()
+
+            if parts[0].lower() != 'bearer':
+                return None
+            elif len(parts) == 1:
+                return None
+            elif len(parts) > 2:
+                return None
+
+            token = parts[1]
+            try:
+                payload = self.decode_handler(token)
+                user, _ = User.objects.get_or_create(username=payload['sub'])
+                return (user, token)
+            except jwt.ExpiredSignatureError:
+                return None
+            except jwt.JWTClaimsError:
+                return None
+            except Exception:
+                return None
+        return None
