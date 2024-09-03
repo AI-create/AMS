@@ -1,95 +1,98 @@
-from django.shortcuts import redirect
-from django.contrib.auth import login
-from django.conf import settings
-from rest_framework import viewsets, permissions
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Article, Tag
-from .serializers import ArticleSerializer, TagSerializer
-import requests
+from rest_framework import viewsets
 from django.contrib.auth.models import User
-from oauth2_provider.contrib.rest_framework import OAuth2Authentication, TokenHasReadWriteScope
-from django.db.models import Q
+from .models import Article, Tag, AdminCode
+from .serializers import ArticleSerializer, TagSerializer, UserSerializer
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermission
+from django.views.generic import ListView, View
+from django.http import JsonResponse, HttpResponseForbidden
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import UserPassesTestMixin
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 
-# Auth0 callback view
-def callback(request):
-    code = request.GET.get('code')
-    token_url = f"https://{settings.AUTH0_DOMAIN}/oauth/token"
-    token_payload = {
-        'client_id': settings.AUTH0_CLIENT_ID,
-        'client_secret': settings.AUTH0_CLIENT_SECRET,
-        'redirect_uri': settings.AUTH0_CALLBACK_URL,
-        'code': code,
-        'grant_type': 'authorization_code',
-    }
-    token_info = requests.post(token_url, data=token_payload).json()
-    user_url = f"https://{settings.AUTH0_DOMAIN}/userinfo"
-    user_info = requests.get(user_url, headers={'Authorization': f"Bearer {token_info['access_token']}"}).json()
-    
-    user, _ = User.objects.get_or_create(username=user_info['email'])
-    login(request, user)
-    return redirect('/')
+# Custom permission to check if the user is the author or is an admin
+class IsAuthorOrAdmin(BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user and request.user.is_staff:
+            return True
+        return obj.author == request.user
 
-class IsAdminOrReadOnly(permissions.BasePermission):
-    """
-    Custom permission to only allow admin users to create, update, or delete articles.
-    Authenticated users can only read.
-    """
-
-    def has_permission(self, request, view):
-        # Allow read-only access for authenticated users
-        if request.method in permissions.SAFE_METHODS:
-            return request.user.is_authenticated
-
-        # Write permissions are only allowed to the admin users
-        return request.user.is_staff
-
+# Article ViewSet
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
-    authentication_classes = [OAuth2Authentication]
-    permission_classes = [IsAdminOrReadOnly, TokenHasReadWriteScope]
-
-    def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
-            self.permission_classes = [permissions.IsAuthenticated]
-        return super(ArticleViewSet, self).get_permissions()
+    permission_classes = [IsAuthenticated, IsAuthorOrAdmin]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def update(self, request, *args, **kwargs):
-        article = self.get_object()
-        if article.author != request.user:
-            return Response({"detail": "You do not have permission to edit this article."}, status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+# Tag ViewSet
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [IsAuthenticated]
 
-    def destroy(self, request, *args, **kwargs):
-        article = self.get_object()
-        if article.author != request.user:
-            return Response({"detail": "You do not have permission to delete this article."}, status=status.HTTP_403_FORBIDDEN)
-        return super().destroy(request, *args, **kwargs)
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUser]
 
-    # GET /articles/{id}/tags/ (list tags of an article)
-    @action(detail=True, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def tags(self, request, pk=None):
-        article = self.get_object()
-        tags = article.tags.all()
-        serializer = TagSerializer(tags, many=True)
-        return Response(serializer.data)
+class ArticleListView(ListView):
+    model = Article
+    template_name = 'articles/article_list.html'
+    context_object_name = 'articles'
 
-    # Custom search functionality
-    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
-    def search(self, request):
-        query = request.query_params.get('q', '')
-        if query:
-            articles = self.queryset.filter(
-                Q(title__icontains=query) | 
-                Q(content__icontains=query) | 
-                Q(tags__name__icontains=query)
-            ).distinct()
+    def get_queryset(self):
+        return Article.objects.all()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['is_admin'] = self.request.GET.get('is_admin') == 'true'
+        return context
+
+class AdminRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_staff
+
+class ArticleCreateView(AdminRequiredMixin, CreateView):
+    model = Article
+    template_name = 'articles/article_form.html'
+    fields = ['title', 'content', 'tags']
+    success_url = reverse_lazy('article_list')
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+class ArticleUpdateView(AdminRequiredMixin, UpdateView):
+    model = Article
+    template_name = 'articles/article_form.html'
+    fields = ['title', 'content', 'tags']
+    success_url = reverse_lazy('article_list')
+
+class ArticleDeleteView(AdminRequiredMixin, DeleteView):
+    model = Article
+    template_name = 'articles/article_confirm_delete.html'
+    success_url = reverse_lazy('article_list')
+
+@login_required
+def role_selection_view(request):
+    if request.method == 'POST':
+        role = request.POST.get('role')
+        if role == 'admin':
+            return redirect('verify_admin_code')
         else:
-            articles = self.queryset.none()
-        serializer = self.get_serializer(articles, many=True)
-        return Response(serializer.data)
+            return redirect('article_list')
+    return render(request, 'articles/role_selection.html')
+
+@method_decorator(csrf_exempt, name='dispatch')
+class AdminCodeVerificationView(View):
+    def post(self, request, *args, **kwargs):
+        admin_code = request.POST.get('admin_code')
+        if AdminCode.objects.filter(code=admin_code).exists():
+            # Redirect to articles list with admin privileges
+            return JsonResponse({'redirect_url': '/?is_admin=true'}, status=200)
+        return HttpResponseForbidden('Invalid admin code')

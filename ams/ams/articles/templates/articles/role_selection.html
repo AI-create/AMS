@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Selection</title>
+</head>
+<body>
+    <h1>Select Your Role</h1>
+    <form id="role-selection-form" method="post">
+        {% csrf_token %}
+        <label for="role">Choose your role:</label>
+        <select id="role" name="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select>
+        <br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        document.getElementById('role-selection-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const role = document.getElementById('role').value;
+
+            if (role === 'admin') {
+                const adminCode = prompt("Please enter the admin code:");
+                fetch("{% url 'verify_admin_code' %}", {
+                    method: "POST",
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `admin_code=${adminCode}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        alert("Invalid admin code.");
+                    }
+                });
+            } else {
+                window.location.href = '/?is_admin=false';
+            }
+        });
+    </script>
+</body>
+</html>

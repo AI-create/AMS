@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article List</title>
+</head>
+<body>
+    <h1>Article List</h1>
+
+    {% if user.is_authenticated %}
+        <ul>
+            {% if articles %}
+                {% for article in articles %}
+                    <li>
+                        <strong>{{ article.title }}</strong> - {{ article.author.username }} - {{ article.created_at }}
+                        {% if is_admin %}
+                            <a href="{% url 'article_update' article.pk %}">Edit</a>
+                            <a href="{% url 'article_delete' article.pk %}">Delete</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            {% else %}
+                <li>No articles available.</li>
+            {% endif %}
+        </ul>
+
+        {% if is_admin %}
+            <p><a href="{% url 'article_create' %}">Create New Article</a></p>
+        {% endif %}
+
+        <p><a href="{% url 'account_logout' %}">Logout</a></p>
+    {% else %}
+        <p>You must be logged in to view the articles.</p>
+        <p><a href="{% url 'account_login' %}">Login</a></p>
+    {% endif %}
+    
+</body>
+</html>
