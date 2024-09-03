@@ -1,6 +1,125 @@
 User Manual
 
-Start the server at: cd run_waitress.py> with CMD "waitress-serve --port=80 ams.wsgi:application"
+
+Installation Instructions: Setting Up the Environment
+To set up your Django project with all the necessary dependencies and configurations, follow these steps:
+
+1. Install Python and pip
+Ensure Python is installed on your system (version 3.x). You can download it from the official Python website.
+
+Once Python is installed, pip should be available as well.
+
+Verify the installation:
+
+python --version
+pip --version
+
+2. Create a Virtual Environment
+Creating a virtual environment ensures that your project dependencies are isolated.
+
+In your terminal, navigate to your project directory:
+
+cd path/to/your/project
+
+
+Installation Instructions: Setting Up the Environment
+To set up your Django project with all the necessary dependencies and configurations, follow these steps:
+
+1. Install Python and pip
+Ensure Python is installed on your system (version 3.x). You can download it from the official Python website.
+
+Once Python is installed, pip should be available as well.
+
+Verify the installation:
+
+bash
+Copy code
+python --version
+pip --version
+
+2. Create a Virtual Environment
+Creating a virtual environment ensures that your project dependencies are isolated.
+
+In your terminal, navigate to your project directory:
+
+cd path/to/your/project
+
+Create a virtual environment:
+
+python -m venv venv
+
+Activate the virtual environment:
+On Windows:
+
+venv\Scripts\activate
+
+On macOS/Linux:
+
+source venv/bin/activate
+
+3. Install Dependencies
+With your virtual environment activated, install the necessary dependencies using pip. You can use the requirements.txt file if it exists:
+
+pip install -r requirements.txt
+
+
+Temporarily Setting Environment Variables (For the Current Session)
+For temporary use, you can set environment variables directly in your terminal session. These will only last until you close the terminal.
+
+set SECRET_KEY=your_secret_key_here
+set DEBUG=False
+set ALLOWED_HOSTS=localhost,127.0.0.1,d2xtaexzsbvmol.cloudfront.net
+
+set DATABASE_URL=postgres://username:password@host:port/dbname
+
+set AWS_STORAGE_BUCKET_NAME=myams
+set AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+set AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+
+set SOCIAL_GOOGLE_CLIENT_ID=your_google_client_id
+set SOCIAL_GOOGLE_CLIENT_SECRET=your_google_client_secret
+set OAUTH2_STATIC_REDIRECT_URI=https://d2xtaexzsbvmol.cloudfront.net/accounts/google/login/callback/
+
+set CSRF_TRUSTED_ORIGINS=https://d2xtaexzsbvmol.cloudfront.net
+set CSRF_COOKIE_SECURE=True
+set CORS_ALLOW_ALL_ORIGINS=True
+
+
+
+
+
+
+On macOS/Linux:
+
+
+export SECRET_KEY=your_secret_key_here
+export DEBUG=False
+export ALLOWED_HOSTS=localhost,127.0.0.1,d2xtaexzsbvmol.cloudfront.net
+
+export DATABASE_URL=postgres://username:password@host:port/dbname
+
+export AWS_STORAGE_BUCKET_NAME=myams
+export AWS_ACCESS_KEY_ID=your_aws_access_key_id_here
+export AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key_here
+
+export SOCIAL_GOOGLE_CLIENT_ID=your_google_client_id
+export SOCIAL_GOOGLE_CLIENT_SECRET=your_google_client_secret
+export OAUTH2_STATIC_REDIRECT_URI=https://d2xtaexzsbvmol.cloudfront.net/accounts/google/login/callback/
+
+export CSRF_TRUSTED_ORIGINS=https://d2xtaexzsbvmol.cloudfront.net
+export CSRF_COOKIE_SECURE=True
+export CORS_ALLOW_ALL_ORIGINS=True
+
+
+
+
+
+
+
+
+
+
+@@@@@@@@@@    Start the server at:  run_waitress.py> with CMD "waitress-serve --port=80 ams.wsgi:application"
 
 1. OAuth Login/Signup
 
