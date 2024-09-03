@@ -3,40 +3,55 @@ User Manual
 Start the server at: cd run_waitress.py> with CMD "waitress-serve --port=80 ams.wsgi:application"
 
 1. OAuth Login/Signup
+
+RL: https://d2xtaexzsbvmol.cloudfront.net/
+
+Here, you can log in or sign up using OAuth (e.g., Google).
+
 To access the application, start by selecting your role:
 
 URL: https://d2xtaexzsbvmol.cloudfront.net/role-selection/
-Here, you can log in or sign up using OAuth (e.g., Google).
 
 2. Successful Signup/Redirect
-After a successful signup or login, you will be redirected to the accounts page:
+After a successful signup or login, you will be redirected to  URL: https://d2xtaexzsbvmol.cloudfront.net/accounts/profile then navigate to URL: https://d2xtaexzsbvmol.cloudfront.net/accounts/ you will see the status of your signin!
 
-URL: https://d2xtaexzsbvmol.cloudfront.net/accounts/
+
 3. Choose Your Role
 You will be prompted to select your role:
 
 URL: https://d2xtaexzsbvmol.cloudfront.net/role-selection/
+
 Note: If you choose to act as an admin for performing CRUD (Create, Read, Update, Delete) operations, you will need to enter the admin code: admin007.
 
 4. View Articles
 After selecting your role, you can view the list of articles. If you are an admin, you will see additional options for editing and deleting articles.
 
 URL: https://d2xtaexzsbvmol.cloudfront.net/
+
+
+
 5. Create Article
 Admins can create new articles by navigating to the create article page:
 
 URL: https://d2xtaexzsbvmol.cloudfront.net/article/create/
+
+
+
 6. Edit Article
 To edit an existing article, navigate to the edit article page. Replace <int:pk> with the specific ID of the article you want to edit:
 
 URL: https://d2xtaexzsbvmol.cloudfront.net/article/int:pk/update/
+
+
 7. Delete Article
 To delete an existing article, navigate to the delete article page. Replace <int:pk> with the specific ID of the article you want to delete:
 
 URL: https://d2xtaexzsbvmol.cloudfront.net/article/int:pk/delete/
-Note:
 
+
+Note:
 Admin Privileges: Only users with admin privileges (who have correctly entered the admin code) will have the ability to create, edit, or delete articles.
+
 Session Persistence: Ensure your session is active to perform admin operations; otherwise, you might need to reselect your role.
 This manual guides you through accessing the various features of your application, from login to article management.
 
