@@ -10,12 +10,12 @@ environ.Env.read_env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-t3*r8lllbad(bkorc^e_9a^l0+%7oa=#(9y)15ec6osq^5yry4')
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '3.27.120.1', 'd2xtaexzsbvmol.cloudfront.net', '172.31.0.236', 'alb-78546039.ap-southeast-2.elb.amazonaws.com', '54.252.200.211']
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
 # Application definition
 INSTALLED_APPS = [
@@ -48,13 +48,8 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://d2xtaexzsbvmol.cloudfront.net',  # Add your CloudFront URL here
-    # You can add other domains if needed
-]
-
-CSRF_COOKIE_SECURE = True  # Ensure CSRF cookies are only sent over HTTPS
-
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS')
+CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=True)
 
 ROOT_URLCONF = 'ams.urls'
 
@@ -78,14 +73,7 @@ WSGI_APPLICATION = 'ams.wsgi.application'
 
 # Database Configuration
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME', default='myamsdb'),
-        'USER': env('DB_USER', default='postgres'),
-        'PASSWORD': env('DB_PASSWORD', default='N98l4TeCdArWhNPIBVbq'),
-        'HOST': env('DB_HOST', default='database-1.ct4mm4im061z.ap-southeast-2.rds.amazonaws.com'),
-        'PORT': env('DB_PORT', default='5432'),
-    }
+    'default': env.db('DATABASE_URL')
 }
 
 # AWS S3 Settings for file storage
@@ -130,11 +118,6 @@ AUTHENTICATION_BACKENDS = (
 
 SITE_ID = 1
 
-# # Allauth settings
-# ACCOUNT_EMAIL_VERIFICATION = 'none'
-# ACCOUNT_AUTHENTICATION_METHOD = 'email'
-# ACCOUNT_EMAIL_REQUIRED = True
-
 # Social account providers
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -148,16 +131,12 @@ SOCIALACCOUNT_PROVIDERS = {
         },
         'OAUTH2_CLIENT_ID': env('SOCIAL_GOOGLE_CLIENT_ID'),
         'OAUTH2_CLIENT_SECRET': env('SOCIAL_GOOGLE_CLIENT_SECRET'),
-        'OAUTH2_STATIC_REDIRECT_URI': 'http://d2xtaexzsbvmol.cloudfront.net/accounts/google/login/callback/',
+        'OAUTH2_STATIC_REDIRECT_URI': env('OAUTH2_STATIC_REDIRECT_URI'),
     }
 }
 
-
-
-
-
 # CORS configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=True)
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
