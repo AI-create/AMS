@@ -7,31 +7,29 @@
 </head>
 <body>
     <h1>Article List</h1>
+    
+    <ul>
+        {% if articles %}
+            {% for article in articles %}
+                <li>
+                    {{ article.title }} - {{ article.author.username }} - {{ article.created_at }}
+                    {% if user.is_authenticated and request.session.is_admin %}
+                        <a href="{% url 'article_update' article.pk %}">Edit</a> | 
+                        <a href="{% url 'article_delete' article.pk %}">Delete</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% else %}
+            <li>No articles available.</li>
+        {% endif %}
+    </ul>
 
     {% if user.is_authenticated %}
-        <ul>
-            {% if articles %}
-                {% for article in articles %}
-                    <li>
-                        <strong>{{ article.title }}</strong> - {{ article.author.username }} - {{ article.created_at }}
-                        {% if is_admin %}
-                            <a href="{% url 'article_update' article.pk %}">Edit</a>
-                            <a href="{% url 'article_delete' article.pk %}">Delete</a>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            {% else %}
-                <li>No articles available.</li>
-            {% endif %}
-        </ul>
-
-        {% if is_admin %}
+        {% if request.session.is_admin %}
             <p><a href="{% url 'article_create' %}">Create New Article</a></p>
         {% endif %}
-
         <p><a href="{% url 'account_logout' %}">Logout</a></p>
     {% else %}
-        <p>You must be logged in to view the articles.</p>
         <p><a href="{% url 'account_login' %}">Login</a></p>
     {% endif %}
     

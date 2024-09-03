@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Article Form{% endblock %}</title>
+    <title>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Article</title>
 </head>
 <body>
-    <h1>{% block header %}Article Form{% endblock %}</h1>
+    <h1>{% if form.instance.pk %}Edit{% else %}Create{% endif %} Article</h1>
     
     <form method="post">
         {% csrf_token %}
@@ -14,6 +14,6 @@
         <button type="submit">Save</button>
     </form>
     
-    <p><a href="{% url 'article_list' %}">Back to Articles</a></p>
+    <p><a href="{% url 'article_list' %}">Back to Article List</a></p>
 </body>
 </html>

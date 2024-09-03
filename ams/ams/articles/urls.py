@@ -8,10 +8,10 @@ router.register(r'tags', TagViewSet, basename='tag')
 
 urlpatterns = [
     path('', ArticleListView.as_view(), name='article_list'),
-    path('role-selection/', role_selection_view, name='role_selection'),
-    path('verify-admin-code/', AdminCodeVerificationView.as_view(), name='verify_admin_code'),
     path('article/create/', ArticleCreateView.as_view(), name='article_create'),
     path('article/<int:pk>/update/', ArticleUpdateView.as_view(), name='article_update'),
     path('article/<int:pk>/delete/', ArticleDeleteView.as_view(), name='article_delete'),
+    path('role-selection/', role_selection_view, name='role_selection'),
+    path('verify-admin-code/', AdminCodeVerificationView.as_view(), name='verify_admin_code'),
     path('api/', include(router.urls)),
 ]
